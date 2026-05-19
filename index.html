@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Procesador Minimalista</title>
+    <style>
+        /* Estilos generales y diseño de la tarjeta contenedora */
+        body { background: #0f172a; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 15px; text-align: center; max-width: 800px; width: 95%; }
+        
+        /* Contenedor y estilo del lienzo */
+        .canvas-box { background: #334155; padding: 10px; margin: 15px 0; border-radius: 10px; display: flex; justify-content: center; }
+        canvas { max-width: 100%; border-radius: 5px; }
+        
+        /* Cuadrícula para organizar los botones en 4 columnas */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        
+        /* Estilos de botones y estados visuales */
+        button, label { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: #6366f1; color: #fff; transition: 0.2s; }
+        button:hover { filter: brightness(1.2); }
+        .btn-ok { background: #22c55e; } 
+        .btn-del { background: #ef4444; grid-column: span 4; } /* Botón de limpiar ocupa toda la fila */
+        #upload { display: none; } /* Escondemos el input real para usar el label como botón */
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🎨 Procesador De Imagenes</h2>
+        <label for="upload">📂 Cargar Imagen</label>
+        <input type="file" id="upload" accept="image/*" onchange="loadImg(event)">
+        
+        <div class="canvas-box"><canvas id="c"></canvas></div>
+        
+        <div class="grid">
+            <button class="btn-ok" onclick="f('none')">Normal</button>
+            <button onclick="f('sepia(1)')">Sepia</button>
+            <button onclick="f('grayscale(1)')">B y N</button>
+            <button onclick="f('invert(1)')">Invertir</button>
+            <button onclick="f('blur(5px)')">Desenfoque</button>
+            <button onclick="f('brightness(1.5)')">Brillo</button>
+            <button onclick="f('saturate(3)')">Color</button>
+            <button onclick="f('hue-rotate(90deg)')">Matiz</button>
+            <button class="btn-del" onclick="reset()">🗑️ Limpiar Todo</button>
+        </div>
+    </div>
+
+    <script>
+        const ctx = c.getContext('2d'); // Acceso al contexto de dibujo del canvas
+        let img = null; // Variable global para guardar la imagen cargada
+
+        // Función para leer el archivo seleccionado y dibujarlo en el canvas
+        function loadImg(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                img = new Image();
+                img.onload = () => {
+                    // Escala la imagen si es muy ancha y ajusta el canvas
+                    const sc = img.width > 750 ? 750 / img.width : 1;
+                    c.width = img.width * sc; c.height = img.height * sc;
+                    f('none'); // Dibuja la imagen inicial sin filtros
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+
+        // Función para aplicar filtros CSS al canvas y redibujar
+        const f = (val) => { 
+            if(!img) return; // Si no hay imagen, no hace nada
+            ctx.filter = val; // Aplica el efecto (sepia, b&n, etc.)
+            ctx.clearRect(0,0,c.width,c.height); // Limpia el canvas
+            ctx.drawImage(img,0,0,c.width,c.height); // Dibuja la imagen con el filtro
+        };
+
+        // Función para resetear el sistema y vaciar el lienzo
+        const reset = () => { img = null; c.width = c.height = 0; upload.value = ""; };
+    </script>
+</body>
+</html>
